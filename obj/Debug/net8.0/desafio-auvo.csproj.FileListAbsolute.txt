@@ -1,0 +1,15 @@
+/home/slo/workspace/desafios/desafio-auvo/bin/Debug/net8.0/desafio-auvo
+/home/slo/workspace/desafios/desafio-auvo/bin/Debug/net8.0/desafio-auvo.deps.json
+/home/slo/workspace/desafios/desafio-auvo/bin/Debug/net8.0/desafio-auvo.runtimeconfig.json
+/home/slo/workspace/desafios/desafio-auvo/bin/Debug/net8.0/desafio-auvo.dll
+/home/slo/workspace/desafios/desafio-auvo/bin/Debug/net8.0/desafio-auvo.pdb
+/home/slo/workspace/desafios/desafio-auvo/obj/Debug/net8.0/desafio-auvo.GeneratedMSBuildEditorConfig.editorconfig
+/home/slo/workspace/desafios/desafio-auvo/obj/Debug/net8.0/desafio-auvo.AssemblyInfoInputs.cache
+/home/slo/workspace/desafios/desafio-auvo/obj/Debug/net8.0/desafio-auvo.AssemblyInfo.cs
+/home/slo/workspace/desafios/desafio-auvo/obj/Debug/net8.0/desafio-auvo.csproj.CoreCompileInputs.cache
+/home/slo/workspace/desafios/desafio-auvo/obj/Debug/net8.0/desafio-auvo.sourcelink.json
+/home/slo/workspace/desafios/desafio-auvo/obj/Debug/net8.0/desafio-auvo.dll
+/home/slo/workspace/desafios/desafio-auvo/obj/Debug/net8.0/refint/desafio-auvo.dll
+/home/slo/workspace/desafios/desafio-auvo/obj/Debug/net8.0/desafio-auvo.pdb
+/home/slo/workspace/desafios/desafio-auvo/obj/Debug/net8.0/desafio-auvo.genruntimeconfig.cache
+/home/slo/workspace/desafios/desafio-auvo/obj/Debug/net8.0/ref/desafio-auvo.dll
