@@ -10,7 +10,7 @@ namespace desafio_auvo.Services.Interfaces
 {
     public interface IFolhaDePontoService
     {
-        Task<List<OrdemDePagamentoModel>> ProcessarFolhasDePonto(string caminho);
+        //Task<List<OrdemDePagamentoModel>> ProcessarFolhasDePonto(string caminho);
         Task<List<OrdemDePagamentoModel>> ProcessarFolhasDePontoAsync(string caminho);
     }
 }

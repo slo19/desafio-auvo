@@ -27,59 +27,6 @@ namespace desafio_auvo.Services
             _repository = repository;
         }
 
-        public async Task<List<OrdemDePagamentoModel>> ProcessarFolhasDePonto(string caminho)
-        {
-            
-            List<OrdemDePagamentoModel> ordensDePagamento = new();
-            var folhasPorMes = await _repository.GetAll(caminho);
-
-            if(folhasPorMes == null)
-            {
-                return null;
-            }
-            foreach(var folhaDePagamento in folhasPorMes)
-            {
-                var ordem = await InstanciarOrdem(folhaDePagamento.NomeArquivo);
-
-                try
-                {
-                    decimal totalExtras = 0;
-                    decimal totalDebito = 0;
-                    foreach (var folha in folhaDePagamento.FolhasDePonto.GroupBy(f => f.Codigo).ToList())
-                    {
-                        var diasTrabalhados = await CalcularDiasTrabalhados(folha.ToList());
-                        var diasExtras = diasTrabalhados - Calendario.DiasDoMes(ordem.MesVigencia, ordem.AnoVigencia);
-                        var horasTrabalhadas = await CalcularHorasTrabalhadas(folha.ToList());
-                        var tempoExtra = horasTrabalhadas - new TimeSpan(Calendario.DiasDoMes(ordem.MesVigencia, ordem.AnoVigencia)*8, 0, 0);
-                        var horasExtra = tempoExtra.TotalHours;
-                        var totalReceber = await CalcularPagamento(folha.ToList());
-                        totalExtras += decimal.Parse(horasExtra.ToString()) * (await ConverterValorHora(folha.First().ValorHora));
-                        totalDebito += decimal.Parse((horasExtra * -1).ToString()) * (await ConverterValorHora(folha.First().ValorHora));
-                        var funcionario = new FuncionarioModel
-                        {
-                            Codigo = folha.Key,
-                            Nome = folha.First().Nome,
-                            DiasTrabalhados = diasTrabalhados,
-                            DiasExtras = diasExtras < 0 ? 0 : diasExtras,
-                            DiasFalta = diasExtras < 0 ? diasExtras : 0,
-                            TotalReceber = totalReceber,
-                            HorasDebito = horasExtra < 0 ? horasExtra : 0,
-                            HorasExtras = horasExtra > 0? horasExtra : 0
-                        };
-
-                        ordem.Funcionarios.Add(funcionario);
-                    }
-                    ordem = await CalcularTotais(ordem, totalExtras, totalDebito);
-                    ordensDePagamento.Add(ordem);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Erro ao processar o arquivo {folhaDePagamento.NomeArquivo}");
-                }
-            }
-            return ordensDePagamento;   
-        }
-
         public async Task<List<OrdemDePagamentoModel>> ProcessarFolhasDePontoAsync(string caminho)
         {
                 var arquivos = await LeituraDeArquivos.ListarArquivos(caminho);
@@ -110,50 +57,50 @@ namespace desafio_auvo.Services
                 return ordensProcessadas.ToList();
         }
 
-    private async Task<OrdemDePagamentoModel> ProcessarFolhas (FolhasPorMesSetor folhas)
-    {
-        var ordem = await InstanciarOrdem(folhas.NomeArquivo);
-
-        try
+        private async Task<OrdemDePagamentoModel> ProcessarFolhas (FolhasPorMesSetor folhas)
         {
+            var ordem = await InstanciarOrdem(folhas.NomeArquivo);
+
+            try
+            {
                 decimal totalExtras = 0;
                 decimal totalDebito = 0;
-            foreach (var folha in folhas.FolhasDePonto.GroupBy(f => f.Codigo).ToList())
-            {
-                var diasTrabalhados = await CalcularDiasTrabalhados(folha.ToList());
-                var diasExtras = diasTrabalhados - Calendario.DiasDoMes(ordem.MesVigencia, ordem.AnoVigencia);
-                var horasTrabalhadas = await CalcularHorasTrabalhadas(folha.ToList());
-                var tempoExtra = horasTrabalhadas - new TimeSpan(Calendario.DiasDoMes(ordem.MesVigencia, ordem.AnoVigencia) * 8, 0, 0);
-                var horasExtra = tempoExtra.TotalHours;
-                var totalReceber = await CalcularPagamento(folha.ToList());
-                    totalExtras += decimal.Parse(horasExtra.ToString()) * (await ConverterValorHora(folha.First().ValorHora));
-                    totalDebito += decimal.Parse((horasExtra * -1).ToString()) * (await ConverterValorHora(folha.First().ValorHora));
-                    var funcionario = new FuncionarioModel
+                foreach (var folha in folhas.FolhasDePonto.GroupBy(f => f.Codigo).ToList())
                 {
-                    Codigo = folha.Key,
-                    Nome = folha.First().Nome,
-                    DiasTrabalhados = diasTrabalhados,
-                    DiasExtras = diasExtras < 0 ? 0 : diasExtras,
-                    DiasFalta = diasExtras < 0 ? diasExtras : 0,
-                    TotalReceber = totalReceber,
-                    HorasDebito = horasExtra < 0 ? horasExtra : 0,
-                    HorasExtras = horasExtra > 0 ? horasExtra : 0
-                };
+                    var diasTrabalhados = await CalcularDiasTrabalhados(folha.ToList());
+                    var diasExtras = diasTrabalhados - Calendario.DiasDoMes(ordem.MesVigencia, ordem.AnoVigencia);
+                    var horasTrabalhadas = await CalcularHorasTrabalhadas(folha.ToList());
+                    var tempoExtra = horasTrabalhadas - new TimeSpan(Calendario.DiasDoMes(ordem.MesVigencia, ordem.AnoVigencia) * 8, 0, 0);
+                    var horasExtra = tempoExtra.TotalHours;
+                    var totalReceber = await CalcularPagamento(folha.ToList());
+                        totalExtras += decimal.Parse(horasExtra.ToString()) * (await ConverterValorHora(folha.First().ValorHora));
+                        totalDebito += decimal.Parse((horasExtra * -1).ToString()) * (await ConverterValorHora(folha.First().ValorHora));
+                        var funcionario = new FuncionarioModel
+                    {
+                        Codigo = folha.Key,
+                        Nome = folha.First().Nome,
+                        DiasTrabalhados = diasTrabalhados,
+                        DiasExtras = diasExtras < 0 ? 0 : diasExtras,
+                        DiasFalta = diasExtras < 0 ? diasExtras : 0,
+                        TotalReceber = Arredondar(totalReceber),
+                        HorasDebito = horasExtra < 0 ? Arredondar(horasExtra) : 0,
+                        HorasExtras = horasExtra > 0 ? Arredondar(horasExtra) : 0
+                    };
 
-                ordem.Funcionarios.Add(funcionario);
-            }
+                    ordem.Funcionarios.Add(funcionario);
+                }
             
-            ordem = await CalcularTotais(ordem , totalExtras, totalDebito);
-            return ordem;
+                ordem = await CalcularTotais(ordem , totalExtras, totalDebito);
+                return ordem;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao processar o arquivo {folhas.NomeArquivo}");
+                return null;
+            }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erro ao processar o arquivo {folhas.NomeArquivo}");
-            return null;
-        }
-    }
-    private async Task<OrdemDePagamentoModel> InstanciarOrdem(string nomeArquivo) 
-        {
+        private async Task<OrdemDePagamentoModel> InstanciarOrdem(string nomeArquivo) 
+            {
             var arrayNome = nomeArquivo.Split("-").ToArray();
             var ordemDePagamento = new OrdemDePagamentoModel
             {
@@ -211,12 +158,20 @@ namespace desafio_auvo.Services
 
         private async Task<OrdemDePagamentoModel> CalcularTotais(OrdemDePagamentoModel ordem, decimal totalExtras, decimal totalDebito)
         {
-            ordem.TotalPagar = ordem.Funcionarios.Sum(f => f.TotalReceber);
-            ordem.TotalExtras = totalExtras > 0 ? totalExtras : 0;
-            ordem.TotalDescontos = totalDebito > 0 ? totalDebito : 0;
+            ordem.TotalPagar = Arredondar(ordem.Funcionarios.Sum(f => f.TotalReceber));
+            ordem.TotalExtras = totalExtras > 0 ? Arredondar(totalExtras) : 0;
+            ordem.TotalDescontos = totalDebito > 0 ? Arredondar(totalDebito) : 0;
             return ordem;
         }
 
+        private decimal Arredondar(decimal val)
+        {
+            return decimal.Round(val, 2, MidpointRounding.AwayFromZero);
+        }
+        private double Arredondar(double val)
+        {
+            return double.Round(val, 2, MidpointRounding.AwayFromZero);
+        }
 
     }
 }
