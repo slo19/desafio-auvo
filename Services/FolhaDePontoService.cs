@@ -43,6 +43,8 @@ namespace desafio_auvo.Services
 
                 try
                 {
+                    decimal totalExtras = 0;
+                    decimal totalDebito = 0;
                     foreach (var folha in folhaDePagamento.FolhasDePonto.GroupBy(f => f.Codigo).ToList())
                     {
                         var diasTrabalhados = await CalcularDiasTrabalhados(folha.ToList());
@@ -51,6 +53,8 @@ namespace desafio_auvo.Services
                         var tempoExtra = horasTrabalhadas - new TimeSpan(Calendario.DiasDoMes(ordem.MesVigencia, ordem.AnoVigencia)*8, 0, 0);
                         var horasExtra = tempoExtra.TotalHours;
                         var totalReceber = await CalcularPagamento(folha.ToList());
+                        totalExtras += decimal.Parse(horasExtra.ToString()) * (await ConverterValorHora(folha.First().ValorHora));
+                        totalDebito += decimal.Parse((horasExtra * -1).ToString()) * (await ConverterValorHora(folha.First().ValorHora));
                         var funcionario = new FuncionarioModel
                         {
                             Codigo = folha.Key,
@@ -65,7 +69,7 @@ namespace desafio_auvo.Services
 
                         ordem.Funcionarios.Add(funcionario);
                     }
-                    ordem = await CalcularTotais(ordem);
+                    ordem = await CalcularTotais(ordem, totalExtras, totalDebito);
                     ordensDePagamento.Add(ordem);
                 }
                 catch (Exception ex)
@@ -112,6 +116,8 @@ namespace desafio_auvo.Services
 
         try
         {
+                decimal totalExtras = 0;
+                decimal totalDebito = 0;
             foreach (var folha in folhas.FolhasDePonto.GroupBy(f => f.Codigo).ToList())
             {
                 var diasTrabalhados = await CalcularDiasTrabalhados(folha.ToList());
@@ -120,7 +126,9 @@ namespace desafio_auvo.Services
                 var tempoExtra = horasTrabalhadas - new TimeSpan(Calendario.DiasDoMes(ordem.MesVigencia, ordem.AnoVigencia) * 8, 0, 0);
                 var horasExtra = tempoExtra.TotalHours;
                 var totalReceber = await CalcularPagamento(folha.ToList());
-                var funcionario = new FuncionarioModel
+                    totalExtras += decimal.Parse(horasExtra.ToString()) * (await ConverterValorHora(folha.First().ValorHora));
+                    totalDebito += decimal.Parse((horasExtra * -1).ToString()) * (await ConverterValorHora(folha.First().ValorHora));
+                    var funcionario = new FuncionarioModel
                 {
                     Codigo = folha.Key,
                     Nome = folha.First().Nome,
@@ -134,7 +142,8 @@ namespace desafio_auvo.Services
 
                 ordem.Funcionarios.Add(funcionario);
             }
-            ordem = await CalcularTotais(ordem);
+            
+            ordem = await CalcularTotais(ordem , totalExtras, totalDebito);
             return ordem;
         }
         catch (Exception ex)
@@ -200,10 +209,11 @@ namespace desafio_auvo.Services
             return decimal.Parse(valor);
         }
 
-        private async Task<OrdemDePagamentoModel> CalcularTotais(OrdemDePagamentoModel ordem)
+        private async Task<OrdemDePagamentoModel> CalcularTotais(OrdemDePagamentoModel ordem, decimal totalExtras, decimal totalDebito)
         {
             ordem.TotalPagar = ordem.Funcionarios.Sum(f => f.TotalReceber);
-
+            ordem.TotalExtras = totalExtras > 0 ? totalExtras : 0;
+            ordem.TotalDescontos = totalDebito > 0 ? totalDebito : 0;
             return ordem;
         }
 
