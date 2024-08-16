@@ -10,5 +10,6 @@ namespace desafio_auvo.Repository.Interfaces
     public interface IFolhaDePontoRepository 
     {
         Task<List<FolhasPorMesSetor>> GetAll(string caminho);
+        Task<FolhasPorMesSetor> Get(string caminho);
     }
 }

@@ -51,5 +51,28 @@ namespace desafio_auvo.Repository
             }
             return folhasPorMes;
         }
+
+        public async Task<FolhasPorMesSetor> Get(string caminho)
+        {
+            FolhasPorMesSetor folhaDoMes = new();
+            
+                try
+                {
+                    using (var reader = new StreamReader(caminho))
+                    using (var csv = new CsvReader(reader, config))
+                    {
+                        csv.Context.RegisterClassMap<FolhaDePontoMap>();
+                        folhaDoMes.FolhasDePonto = csv.GetRecords<FolhaDePontoModel>().ToList();
+                        folhaDoMes.NomeArquivo = caminho.Split("\\").Last().Split(".")[0];
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Não foi possível ler arquivo {caminho}");
+                return null;
+                }
+            
+            return folhaDoMes;
+        }
     }
 }

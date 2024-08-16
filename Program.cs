@@ -30,7 +30,7 @@ namespace desafio_auvo
                 caminho = args[0];
             }
 
-            var arquivos = await folhaDePontoService.ProcessarFolhasDePonto(caminho);
+            var arquivos = await folhaDePontoService.ProcessarFolhasDePontoAsync(caminho);
 
             if(arquivos == null || arquivos.Count() == 0)
             {
